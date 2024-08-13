@@ -23,6 +23,7 @@ jobs:
             cmake `
             fmt `
             gcc `
+            gettext-devel `
             libuv-devel `
             msys2-runtime-devel `
             ninja
