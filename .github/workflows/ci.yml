@@ -36,3 +36,7 @@ jobs:
           cmake --build build || true
           cp build/fcitx5/src/lib/fcitx-utils/msys-Fcitx5Utils-2.dll build/fcitx5/src/modules/spell
           cmake --build build
+
+      - name: Setup tmate session
+        if: ${{ failure() }}
+        uses: mxschmitt/action-tmate@v3
