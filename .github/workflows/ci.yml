@@ -1,0 +1,37 @@
+name: ci
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install dependencies
+        run: |
+          C:/msys64/usr/bin/pacman -Syu --noconfirm
+          C:/msys64/usr/bin/pacman -S --noconfirm \
+            mingw-w64-ucrt-x86_64-extra-cmake-modules \
+            cmake \
+            fmt \
+            gcc \
+            msys2-runtime-devel \
+            ninja
+          Add-Content $env:GITHUB_PATH "C:/msys64/usr/bin"
+
+      - name: Build
+        run: |
+          pushd fcitx5 && git apply ../patches/fcitx5.patch && popd
+          cmake -B build -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release
+          cmake --build build || true
+          cp build/fcitx5/src/{lib/fcitx-utils/msys-Fcitx5Utils-2.dll,modules/spell}
+          cmake --build build
