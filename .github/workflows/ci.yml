@@ -23,6 +23,7 @@ jobs:
             cmake `
             fmt `
             gcc `
+            libuv `
             msys2-runtime-devel `
             ninja
           Add-Content $env:GITHUB_PATH "C:/msys64/usr/bin"
