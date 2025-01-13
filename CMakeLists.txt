@@ -4,6 +4,7 @@ project(fcitx5-windows VERSION 0.1.0)
 
 set(CMAKE_CXX_STANDARD 17)
 
+option(ENABLE_TESTING_ADDONS "" OFF)
 option(ENABLE_TEST "" OFF)
 option(ENABLE_COVERAGE "" OFF)
 option(ENABLE_ENCHANT "" OFF)
