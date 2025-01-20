@@ -47,6 +47,7 @@ jobs:
         working-directory: win32
     steps:
       - name: Disable CRLF
+        working-directory: .
         run: git config --global core.autocrlf false
 
       - uses: actions/checkout@v4
