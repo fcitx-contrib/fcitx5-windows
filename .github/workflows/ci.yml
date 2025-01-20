@@ -8,8 +8,8 @@ on:
   workflow_dispatch:
 
 jobs:
-  build:
-    runs-on: windows-latest
+  build-fcitx5:
+    runs-on: windows-2025
     steps:
       - uses: actions/checkout@v4
         with:
@@ -35,6 +35,30 @@ jobs:
           cmake -B build -G Ninja `
             -DCMAKE_BUILD_TYPE=Release
           cmake --build build
+
+      - name: Setup tmate session
+        if: ${{ failure() }}
+        uses: mxschmitt/action-tmate@v3
+
+  build-win32:
+    runs-on: windows-2025
+    defaults:
+      run:
+        working-directory: win32
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Lint
+        run: ./scripts/lint.ps1
+
+      - name: Build
+        run: |
+          cmake -B build -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release
+          cmake --build build
+
+      - name: Test
+        run: ctest --test-dir build --output-on-failure
 
       - name: Setup tmate session
         if: ${{ failure() }}

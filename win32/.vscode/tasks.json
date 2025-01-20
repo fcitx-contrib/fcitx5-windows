@@ -1,0 +1,53 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "type": "shell",
+            "label": "Configure",
+            "command": "cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Debug",
+            "group": {
+                "kind": "build"
+            }
+        },
+        {
+            "type": "shell",
+            "label": "Build",
+            "command": "cmake --build build",
+            "group": {
+                "kind": "build"
+            }
+        },
+        {
+            "type": "shell",
+            "label": "Install",
+            "command": "./scripts/install.ps1",
+            "group": {
+                "kind": "build"
+            }
+        },
+        {
+            "type": "shell",
+            "label": "Format",
+            "command": "./scripts/format.ps1",
+            "group": {
+                "kind": "build"
+            }
+        },
+        {
+            "type": "shell",
+            "label": "Lint",
+            "command": "./scripts/lint.ps1",
+            "group": {
+                "kind": "build"
+            }
+        },
+        {
+            "type": "shell",
+            "label": "Test",
+            "command": "ctest --test-dir build --output-on-failure",
+            "group": {
+                "kind": "build"
+            }
+        }
+    ]
+}
