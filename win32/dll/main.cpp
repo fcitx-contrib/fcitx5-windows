@@ -3,8 +3,7 @@
 CRITICAL_SECTION CS;
 
 __declspec(dllexport) STDAPI DllUnregisterServer() {
-    fcitx::UnregisterCategories();
-    fcitx::UnregisterProfiles();
+    fcitx::UnregisterCategoriesAndProfiles();
     fcitx::UnregisterServer();
     return S_OK;
 }

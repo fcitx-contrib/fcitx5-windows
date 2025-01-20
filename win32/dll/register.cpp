@@ -45,7 +45,10 @@ BOOL RegisterServer() {
     return ret == ERROR_SUCCESS;
 }
 
-void UnregisterServer() {}
+void UnregisterServer() {
+    auto achIMEKey = "CLSID\\" + guidToString(FCITX_CLSID);
+    RegDeleteTreeA(HKEY_CLASSES_ROOT, achIMEKey.c_str());
+}
 
 /*
 HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\CTF\TIP\{FC3869BA-51E3-4078-8EE2-5FE49493A1F4}
@@ -72,8 +75,6 @@ BOOL RegisterProfiles() {
     mgr.Release();
     return hr == S_OK;
 }
-
-void UnregisterProfiles() {}
 
 // No documentation about what they means.
 const GUID Categories[] = {GUID_TFCAT_CATEGORY_OF_TIP,
@@ -117,5 +118,8 @@ BOOL RegisterCategories() {
     return hr == S_OK;
 }
 
-void UnregisterCategories() {}
+void UnregisterCategoriesAndProfiles() {
+    auto key = "SOFTWARE\\Microsoft\\CTF\\TIP\\" + guidToString(FCITX_CLSID);
+    RegDeleteTreeA(HKEY_LOCAL_MACHINE, key.c_str());
+}
 } // namespace fcitx

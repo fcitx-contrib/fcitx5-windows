@@ -8,7 +8,6 @@ extern HINSTANCE dllInstance;
 BOOL RegisterServer();
 void UnregisterServer();
 BOOL RegisterProfiles();
-void UnregisterProfiles();
 BOOL RegisterCategories();
-void UnregisterCategories();
+void UnregisterCategoriesAndProfiles();
 } // namespace fcitx

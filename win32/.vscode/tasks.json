@@ -27,6 +27,14 @@
         },
         {
             "type": "shell",
+            "label": "Uninstall",
+            "command": "./scripts/uninstall.ps1",
+            "group": {
+                "kind": "build"
+            }
+        },
+        {
+            "type": "shell",
             "label": "Format",
             "command": "./scripts/format.ps1",
             "group": {
