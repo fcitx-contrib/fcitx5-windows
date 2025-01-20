@@ -46,6 +46,9 @@ jobs:
       run:
         working-directory: win32
     steps:
+      - name: Disable CRLF
+        run: git config --global core.autocrlf false
+
       - uses: actions/checkout@v4
 
       - name: Lint
