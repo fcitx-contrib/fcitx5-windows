@@ -13,8 +13,11 @@ namespace fs = std::filesystem;
 namespace fcitx {
 HINSTANCE dllInstance; // Set by DllMain.
 
-// HKEY_CLASSES_ROOT\CLSID\{FC3869BA-51E3-4078-8EE2-5FE49493A1F4} Fcitx5
-// - InprocServer32 C:\Windows\system32
+/*
+HKEY_CLASSES_ROOT\CLSID\{FC3869BA-51E3-4078-8EE2-5FE49493A1F4}: Fcitx5
+  - InprocServer32: C:\Windows\system32
+    ThreadingModel: Apartment
+*/
 BOOL RegisterServer() {
     DWORD dw;
     HKEY hKey = nullptr;
@@ -44,6 +47,16 @@ BOOL RegisterServer() {
 
 void UnregisterServer() {}
 
+/*
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\CTF\TIP\{FC3869BA-51E3-4078-8EE2-5FE49493A1F4}
+  - LanguageProfile
+    - 0x00000804
+      - {9A92B895-29B9-4F19-9627-9F626C9490F2}
+        Description: Fcitx5
+        Enable: 0x00000001
+        IconFile: /path/to/icon in the same directory with dll
+        IconIndex: 0x00000000
+*/
 BOOL RegisterProfiles() {
     std::wstring pchDesc = stringToWString(FCITX5, CP_UTF8);
     WCHAR dllPath[MAX_PATH];
@@ -80,6 +93,18 @@ const GUID Categories[] = {GUID_TFCAT_CATEGORY_OF_TIP,
                            GUID_TFCAT_DISPLAYATTRIBUTEPROVIDER,
                            GUID_TFCAT_DISPLAYATTRIBUTEPROPERTY};
 
+/*
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\CTF\TIP\{FC3869BA-51E3-4078-8EE2-5FE49493A1F4}
+  - Category
+    - Category
+      - GUID of categories
+        - {FC3869BA-51E3-4078-8EE2-5FE49493A1F4}
+      - ...
+    - Item
+      - {FC3869BA-51E3-4078-8EE2-5FE49493A1F4}
+        - GUID of categories
+        - ...
+*/
 BOOL RegisterCategories() {
     ITfCategoryMgr *mgr;
     CoCreateInstance(CLSID_TF_CategoryMgr, nullptr, CLSCTX_INPROC_SERVER,

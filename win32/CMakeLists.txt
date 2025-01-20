@@ -9,6 +9,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 set(CMAKE_CXX_STANDARD 20)
 
+add_subdirectory(assets)
 add_subdirectory(dll)
 
 enable_testing()

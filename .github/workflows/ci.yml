@@ -60,6 +60,9 @@ jobs:
       - name: Test
         run: ctest --test-dir build --output-on-failure
 
+      - name: Check validity
+        run: md5sum -c checksum
+
       - name: Setup tmate session
         if: ${{ failure() }}
         uses: mxschmitt/action-tmate@v3
