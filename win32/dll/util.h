@@ -10,5 +10,5 @@ namespace fcitx {
 extern const GUID FCITX_CLSID;
 extern const GUID PROFILE_GUID;
 std::string guidToString(REFGUID guid);
-std::wstring stringToWString(const std::string &str);
+std::wstring stringToWString(const std::string &str, int codePage);
 } // namespace fcitx

@@ -22,11 +22,11 @@ std::string guidToString(REFGUID guid) {
                        p[9], p[10], p[11], p[12], p[13], p[14], p[15]);
 }
 
-std::wstring stringToWString(const std::string &str) {
+std::wstring stringToWString(const std::string &str, int codePage) {
     int len =
-        MultiByteToWideChar(CP_ACP, 0, str.c_str(), str.size(), nullptr, 0);
+        MultiByteToWideChar(codePage, 0, str.c_str(), str.size(), nullptr, 0);
     WCHAR *buf = new WCHAR[len + 1];
-    MultiByteToWideChar(CP_ACP, 0, str.c_str(), str.size(), buf, len);
+    MultiByteToWideChar(codePage, 0, str.c_str(), str.size(), buf, len);
     buf[len] = '\0';
     std::wstring wstr;
     wstr.append(buf);

@@ -45,7 +45,7 @@ BOOL RegisterServer() {
 void UnregisterServer() {}
 
 BOOL RegisterProfiles() {
-    std::wstring pchDesc = stringToWString(FCITX5);
+    std::wstring pchDesc = stringToWString(FCITX5, CP_UTF8);
     WCHAR dllPath[MAX_PATH];
     GetModuleFileNameW(dllInstance, dllPath, MAX_PATH);
     fs::path path = dllPath;
