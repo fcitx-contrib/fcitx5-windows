@@ -1,0 +1,440 @@
+diff --git a/src/lib/fcitx-utils/CMakeLists.txt b/src/lib/fcitx-utils/CMakeLists.txt
+index 9eb64046..5050e5d5 100644
+--- a/src/lib/fcitx-utils/CMakeLists.txt
++++ b/src/lib/fcitx-utils/CMakeLists.txt
+@@ -38,7 +38,7 @@ endif()
+ 
+ list(APPEND FCITX_UTILS_SOURCES
+     stringutils.cpp
+-    testing.cpp
++    # testing.cpp
+     key.cpp
+     cutf8.cpp
+     color.cpp
+diff --git a/src/lib/fcitx-utils/endian_p.h b/src/lib/fcitx-utils/endian_p.h
+index 332043b8..15b349f3 100644
+--- a/src/lib/fcitx-utils/endian_p.h
++++ b/src/lib/fcitx-utils/endian_p.h
+@@ -29,6 +29,23 @@
+ #define be64toh(x) OSSwapBigToHostInt64(x)
+ #define le64toh(x) OSSwapLittleToHostInt64(x)
+ 
++#elif defined(_WIN32)
++#include <cstdlib>
++
++#define htobe16(x) _byteswap_ushort(x)
++#define htole16(x) (x)
++#define be16toh(x) _byteswap_ushort(x)
++#define le16toh(x) (x)
++
++#define htobe32(x) _byteswap_ulong(x)
++#define htole32(x) (x)
++#define be32toh(x) _byteswap_ulong(x)
++#define le32toh(x) (x)
++
++#define htobe64(x) _byteswap_uint64(x)
++#define htole64(x) (x)
++#define be64toh(x) _byteswap_uint64(x)
++#define le64toh(x) (x)
+ #else
+ #include <sys/endian.h> // IWYU pragma: export
+ #endif
+diff --git a/src/lib/fcitx-utils/eventdispatcher.cpp b/src/lib/fcitx-utils/eventdispatcher.cpp
+index cd88dc58..37f0a7bd 100644
+--- a/src/lib/fcitx-utils/eventdispatcher.cpp
++++ b/src/lib/fcitx-utils/eventdispatcher.cpp
+@@ -50,12 +50,12 @@ public:
+ EventDispatcher::EventDispatcher()
+     : d_ptr(std::make_unique<EventDispatcherPrivate>()) {
+     FCITX_D();
+-    int selfpipe[2];
+-    if (safePipe(selfpipe)) {
+-        throw std::runtime_error("Failed to create pipe");
+-    }
+-    d->fd_[0].give(selfpipe[0]);
+-    d->fd_[1].give(selfpipe[1]);
++    // int selfpipe[2];
++    // if (safePipe(selfpipe)) {
++    //     throw std::runtime_error("Failed to create pipe");
++    // }
++    // d->fd_[0].give(selfpipe[0]);
++    // d->fd_[1].give(selfpipe[1]);
+ }
+ 
+ EventDispatcher::~EventDispatcher() = default;
+diff --git a/src/lib/fcitx-utils/fs.cpp b/src/lib/fcitx-utils/fs.cpp
+index 9f3b4309..7233b9b6 100644
+--- a/src/lib/fcitx-utils/fs.cpp
++++ b/src/lib/fcitx-utils/fs.cpp
+@@ -22,13 +22,21 @@
+ #include "mtime_p.h"
+ #include "standardpath.h"
+ #include "stringutils.h"
++#ifdef _WIN32
++#include <direct.h>
++#endif
+ 
+ namespace fcitx::fs {
+ 
+ namespace {
+ 
+ bool makePathHelper(const std::string &name) {
+-    if (::mkdir(name.c_str(), 0777) == 0) {
++#ifdef _WIN32
++    int res = _mkdir(name.c_str());
++#else
++    int res = ::mkdir(name.c_str(), 0777);
++#endif
++    if (res == 0) {
+         return true;
+     }
+     if (errno == EEXIST) {
+@@ -52,7 +60,12 @@ bool makePathHelper(const std::string &name) {
+     }
+ 
+     // try again
+-    if (::mkdir(name.c_str(), 0777) == 0) {
++#ifdef _WIN32
++    res = _mkdir(name.c_str());
++#else
++    res = ::mkdir(name.c_str(), 0777);
++#endif
++    if (res == 0) {
+         return true;
+     }
+     return errno == EEXIST && isdir(name);
+@@ -79,8 +92,12 @@ bool isexe(const std::string &path) {
+ }
+ 
+ bool islnk(const std::string &path) {
++#ifdef _WIN32
++    return false;
++#else
+     struct stat stats;
+     return lstat(path.c_str(), &stats) == 0 && S_ISLNK(stats.st_mode);
++#endif
+ }
+ 
+ std::string cleanPath(const std::string &path) {
+@@ -233,6 +250,7 @@ ssize_t safeWrite(int fd, const void *data, size_t maxlen) {
+ }
+ 
+ std::optional<std::string> readlink(const std::string &path) {
++#ifndef _WIN32
+     std::string buffer;
+     buffer.resize(256);
+     ssize_t readSize;
+@@ -250,15 +268,20 @@ std::optional<std::string> readlink(const std::string &path) {
+ 
+         buffer.resize(buffer.size() * 2);
+     }
++#endif
+     return std::nullopt;
+ }
+ 
+ int64_t modifiedTime(const std::string &path) {
++#ifdef _WIN32
++    return 0;
++#else
+     struct stat stats;
+     if (stat(path.c_str(), &stats) != 0) {
+         return 0;
+     }
+     return fcitx::modifiedTime(stats).sec;
++#endif
+ }
+ 
+ template <typename FDLike>
+diff --git a/src/lib/fcitx-utils/i18nstring.cpp b/src/lib/fcitx-utils/i18nstring.cpp
+index da9dfdd6..3d78a18b 100644
+--- a/src/lib/fcitx-utils/i18nstring.cpp
++++ b/src/lib/fcitx-utils/i18nstring.cpp
+@@ -12,6 +12,10 @@
+ #include "charutils.h"
+ #include "misc.h"
+ 
++#ifndef LC_MESSAGES
++#define LC_MESSAGES LC_ALL
++#endif
++
+ namespace fcitx {
+ const std::string &I18NString::match(const std::string &locale_) const {
+     std::string locale = locale_;
+diff --git a/src/lib/fcitx-utils/library.cpp b/src/lib/fcitx-utils/library.cpp
+index 4dbe80c3..4474436f 100644
+--- a/src/lib/fcitx-utils/library.cpp
++++ b/src/lib/fcitx-utils/library.cpp
+@@ -8,7 +8,9 @@
+ #include "library.h"
+ #include <dlfcn.h>
+ #include <fcntl.h>
++#ifndef _WIN32
+ #include <sys/mman.h>
++#endif
+ #include <sys/stat.h>
+ #include <unistd.h>
+ #include <cerrno>
+@@ -62,9 +64,11 @@ bool Library::load(Flags<fcitx::LibraryLoadHint> hint) {
+         flag |= RTLD_LAZY;
+     }
+ 
++#ifndef _WIN32
+     if (hint & LibraryLoadHint::PreventUnloadHint) {
+         flag |= RTLD_NODELETE;
+     }
++#endif
+ 
+     if (hint & LibraryLoadHint::ExportExternalSymbolsHint) {
+         flag |= RTLD_GLOBAL;
+@@ -143,7 +147,11 @@ bool Library::findData(const char *slug, const char *magic, size_t lenOfMagic,
+         }
+         void *needunmap = nullptr;
+         void *data = needunmap =
++#ifdef _WIN32
++            nullptr;
++#else
+             mmap(nullptr, statbuf.st_size, PROT_READ, MAP_PRIVATE, fd, 0);
++#endif
+         if (!data) {
+             data = malloc(statbuf.st_size);
+             needfree.reset(data);
+@@ -163,9 +171,11 @@ bool Library::findData(const char *slug, const char *magic, size_t lenOfMagic,
+             parser(pos);
+         }
+         result = true;
++#ifndef _WIN32
+         if (needunmap) {
+             munmap(needunmap, statbuf.st_size);
+         }
++#endif
+     } while (false);
+ 
+     close(fd);
+diff --git a/src/lib/fcitx-utils/misc.cpp b/src/lib/fcitx-utils/misc.cpp
+index ef5eb415..b356550d 100644
+--- a/src/lib/fcitx-utils/misc.cpp
++++ b/src/lib/fcitx-utils/misc.cpp
+@@ -5,7 +5,9 @@
+  *
+  */
+ #include "misc.h"
++#ifndef _WIN32
+ #include <sys/wait.h>
++#endif
+ #include <unistd.h>
+ #include <cstdio>
+ #include <string>
+@@ -34,7 +36,7 @@ namespace fcitx {
+ 
+ void startProcess(const std::vector<std::string> &args,
+                   const std::string &workingDirectory) {
+-#if defined(__APPLE__) && TARGET_OS_IPHONE
++#if (defined(__APPLE__) && TARGET_OS_IPHONE) || defined(_WIN32)
+     FCITX_UNUSED(args);
+     FCITX_UNUSED(workingDirectory);
+     FCITX_ERROR() << "Not implemented";
+@@ -146,6 +148,28 @@ std::string getProcessName(pid_t pid) {
+ #endif
+ }
+ 
++#ifdef _WIN32
++ssize_t getline(char **lineptr, size_t *n, FILE *stream) {
++    if (lineptr == nullptr || n == nullptr || stream == nullptr) {
++        return -1;
++    }
++    std::string line;
++    int ch;
++    while ((ch = fgetc(stream)) != EOF) {
++        line.push_back(static_cast<char>(ch));
++        if (ch == '\n') {
++            break;
++        }
++    }
++    if (line.empty()) {
++        return -1;
++    }
++    *lineptr = _strdup(line.c_str());
++    *n = line.size();
++    return line.size();
++}
++#endif
++
+ ssize_t getline(UniqueCPtr<char> &lineptr, size_t *n, std::FILE *stream) {
+     auto *lineRawPtr = lineptr.release();
+     auto ret = getline(&lineRawPtr, n, stream);
+diff --git a/src/lib/fcitx-utils/misc_p.h b/src/lib/fcitx-utils/misc_p.h
+index f8235e4f..b276d0be 100644
+--- a/src/lib/fcitx-utils/misc_p.h
++++ b/src/lib/fcitx-utils/misc_p.h
+@@ -20,6 +20,7 @@
+ #include <unordered_map>
+ #include <utility>
+ #include <fcitx-utils/endian_p.h>
++#include <fcitx-utils/log.h>
+ #include "config.h"
+ 
+ namespace fcitx {
+@@ -285,7 +286,11 @@ private:
+ };
+ 
+ static inline int safePipe(int pipefd[2]) {
+-#ifdef HAVE_PIPE2
++#ifdef _WIN32
++    FCITX_UNUSED(pipefd);
++    FCITX_ERROR() << "Not implemented";
++    return 1;
++#elif defined(HAVE_PIPE2)
+     return ::pipe2(pipefd, O_NONBLOCK | O_CLOEXEC);
+ #else
+     int ret = ::pipe(pipefd);
+diff --git a/src/lib/fcitx-utils/standardpath.cpp b/src/lib/fcitx-utils/standardpath.cpp
+index 76030c8a..130b8461 100644
+--- a/src/lib/fcitx-utils/standardpath.cpp
++++ b/src/lib/fcitx-utils/standardpath.cpp
+@@ -44,6 +44,11 @@
+ #define O_ACCMODE (O_RDONLY | O_WRONLY | O_RDWR)
+ #endif
+ 
++#ifdef _WIN32
++#include <Windows.h>
++#define fsync(fd) FlushFileBuffers((HANDLE)_get_osfhandle(fd))
++#endif
++
+ namespace fcitx {
+ 
+ namespace {
+@@ -211,6 +216,7 @@ private:
+                 }
+                 dir = stringutils::joinPath(home, defaultPath);
+             } else {
++#ifndef _WIN32
+                 if (env && strcmp(env, "XDG_RUNTIME_DIR") == 0) {
+                     dir = stringutils::joinPath(
+                         defaultPath,
+@@ -221,11 +227,15 @@ private:
+                         }
+                     }
+                 } else {
++#endif
+                     dir = defaultPath;
++#ifndef _WIN32
+                 }
++#endif
+             }
+         }
+ 
++#ifndef _WIN32
+         if (!dir.empty() && env && strcmp(env, "XDG_RUNTIME_DIR") == 0) {
+             struct stat buf;
+             if (stat(dir.c_str(), &buf) != 0 || buf.st_uid != geteuid() ||
+@@ -233,6 +243,7 @@ private:
+                 return {};
+             }
+         }
++#endif
+         return dir;
+     }
+ 
+@@ -627,9 +638,10 @@ bool StandardPath::safeSave(Type type, const std::string &pathOrig,
+     }
+     try {
+         if (callback(file.fd())) {
+-
++#ifndef _WIN32
+             // close it
+             fchmod(file.fd(), 0666 & ~(d->umask()));
++#endif
+             return true;
+         }
+     } catch (const std::exception &) {
+diff --git a/src/lib/fcitx-utils/unixfd.cpp b/src/lib/fcitx-utils/unixfd.cpp
+index 18678a2b..4439fd9e 100644
+--- a/src/lib/fcitx-utils/unixfd.cpp
++++ b/src/lib/fcitx-utils/unixfd.cpp
+@@ -48,7 +48,7 @@ void UnixFD::set(int fd, int min) {
+     if (fd == -1) {
+         reset();
+     } else {
+-        int nfd = ::fcntl(fd, F_DUPFD_CLOEXEC, min);
++        int nfd = fd; // ::fcntl(fd, F_DUPFD_CLOEXEC, min);
+         if (nfd == -1) {
+             throw std::runtime_error("Failed to dup file descriptor");
+         }
+diff --git a/src/lib/fcitx/CMakeLists.txt b/src/lib/fcitx/CMakeLists.txt
+index 927d1676..6ce9b0f4 100644
+--- a/src/lib/fcitx/CMakeLists.txt
++++ b/src/lib/fcitx/CMakeLists.txt
+@@ -24,7 +24,7 @@ set(FCITX_CORE_SOURCES
+     inputpanel.cpp
+     candidatelist.cpp
+     candidateaction.cpp
+-    icontheme.cpp
++    # icontheme.cpp
+     inputmethodengine.cpp
+     )
+ 
+diff --git a/src/lib/fcitx/instance.cpp b/src/lib/fcitx/instance.cpp
+index de27cd9b..d3e9c3f9 100644
+--- a/src/lib/fcitx/instance.cpp
++++ b/src/lib/fcitx/instance.cpp
+@@ -8,7 +8,9 @@
+ 
+ #include <fcntl.h>
+ #include <signal.h>
++#ifndef _WIN32
+ #include <sys/wait.h>
++#endif
+ #include <unistd.h>
+ #include <cstdint>
+ #include <ctime>
+@@ -75,6 +77,10 @@ FCITX_CONFIGURATION(DefaultInputMethod,
+                         this, "ExtraLayout", "ExtraLayout"};);
+ 
+ void initAsDaemon() {
++#ifdef _WIN32
++    FCITX_ERROR() << "Not implemented";
++    return;
++#else
+     pid_t pid;
+     if ((pid = fork()) > 0) {
+         waitpid(pid, nullptr, 0);
+@@ -100,6 +106,7 @@ void initAsDaemon() {
+     signal(SIGTTOU, oldttou);
+     signal(SIGTTIN, oldttin);
+     signal(SIGCHLD, oldchld);
++#endif
+ }
+ 
+ // Switch IM when these capabilities change.
+@@ -1365,6 +1372,7 @@ bool Instance::exiting() const {
+ }
+ 
+ void Instance::handleSignal() {
++#ifndef _WIN32
+     FCITX_D();
+     uint8_t signo = 0;
+     while (fs::safeRead(d->signalPipe_, &signo, sizeof(signo)) > 0) {
+@@ -1378,6 +1386,7 @@ void Instance::handleSignal() {
+             d->zombieReaper_->setOneShot();
+         }
+     }
++#endif
+ }
+ 
+ void Instance::initialize() {
+@@ -1426,6 +1435,7 @@ void Instance::initialize() {
+             }
+             return false;
+         });
++#ifndef _WIN32
+     d->zombieReaper_ = d->eventLoop_.addTimeEvent(
+         CLOCK_MONOTONIC, now(CLOCK_MONOTONIC), 0,
+         [](EventSourceTime *, uint64_t) {
+@@ -1435,6 +1445,7 @@ void Instance::initialize() {
+             return false;
+         });
+     d->zombieReaper_->setEnabled(false);
++#endif
+ 
+     d->exitEvent_ = d->eventLoop_.addExitEvent([this](EventSource *) {
+         FCITX_DEBUG() << "Running save...";
