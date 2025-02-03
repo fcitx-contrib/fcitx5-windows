@@ -21,21 +21,6 @@ index cd88dc58..37f0a7bd 100644
  }
  
  EventDispatcher::~EventDispatcher() = default;
-diff --git a/src/lib/fcitx-utils/i18nstring.cpp b/src/lib/fcitx-utils/i18nstring.cpp
-index da9dfdd6..3d78a18b 100644
---- a/src/lib/fcitx-utils/i18nstring.cpp
-+++ b/src/lib/fcitx-utils/i18nstring.cpp
-@@ -12,6 +12,10 @@
- #include "charutils.h"
- #include "misc.h"
- 
-+#ifndef LC_MESSAGES
-+#define LC_MESSAGES LC_ALL
-+#endif
-+
- namespace fcitx {
- const std::string &I18NString::match(const std::string &locale_) const {
-     std::string locale = locale_;
 diff --git a/src/lib/fcitx-utils/misc.cpp b/src/lib/fcitx-utils/misc.cpp
 index 97dedcb6..05a57046 100644
 --- a/src/lib/fcitx-utils/misc.cpp
@@ -70,7 +55,7 @@ index 97dedcb6..05a57046 100644
      auto *lineRawPtr = lineptr.release();
      auto ret = getline(&lineRawPtr, n, stream);
 diff --git a/src/lib/fcitx-utils/misc_p.h b/src/lib/fcitx-utils/misc_p.h
-index f8235e4f..b276d0be 100644
+index 4bd30914..182691d8 100644
 --- a/src/lib/fcitx-utils/misc_p.h
 +++ b/src/lib/fcitx-utils/misc_p.h
 @@ -20,6 +20,7 @@
@@ -79,9 +64,9 @@ index f8235e4f..b276d0be 100644
  #include <fcitx-utils/endian_p.h>
 +#include <fcitx-utils/log.h>
  #include "config.h"
+ #include "environ.h"
  
- namespace fcitx {
-@@ -285,7 +286,11 @@ private:
+@@ -286,7 +287,11 @@ private:
  };
  
  static inline int safePipe(int pipefd[2]) {
@@ -95,30 +80,18 @@ index f8235e4f..b276d0be 100644
  #else
      int ret = ::pipe(pipefd);
 diff --git a/src/lib/fcitx-utils/standardpath.cpp b/src/lib/fcitx-utils/standardpath.cpp
-index 9cf9d1ea..a0d03ff2 100644
+index 3312214c..c2e7412c 100644
 --- a/src/lib/fcitx-utils/standardpath.cpp
 +++ b/src/lib/fcitx-utils/standardpath.cpp
-@@ -48,6 +48,11 @@
- #define O_ACCMODE (O_RDONLY | O_WRONLY | O_RDWR)
- #endif
- 
-+#ifdef _WIN32
-+#include <Windows.h>
-+#define fsync(fd) FlushFileBuffers((HANDLE)_get_osfhandle(fd))
-+#endif
-+
- namespace fcitx {
- 
- namespace {
-@@ -219,6 +224,7 @@ private:
+@@ -222,6 +222,7 @@ private:
                  }
-                 dir = stringutils::joinPath(home, defaultPath);
+                 dir = stringutils::joinPath(*home, defaultPath);
              } else {
 +#ifndef _WIN32
                  if (env && strcmp(env, "XDG_RUNTIME_DIR") == 0) {
                      dir = stringutils::joinPath(
                          defaultPath,
-@@ -229,11 +235,15 @@ private:
+@@ -232,11 +233,15 @@ private:
                          }
                      }
                  } else {
@@ -134,7 +107,7 @@ index 9cf9d1ea..a0d03ff2 100644
          if (!dir.empty() && env && strcmp(env, "XDG_RUNTIME_DIR") == 0) {
              struct stat buf;
              if (stat(dir.c_str(), &buf) != 0 || buf.st_uid != geteuid() ||
-@@ -241,6 +251,7 @@ private:
+@@ -244,6 +249,7 @@ private:
                  return {};
              }
          }
@@ -142,18 +115,6 @@ index 9cf9d1ea..a0d03ff2 100644
          return dir;
      }
  
-@@ -635,9 +646,10 @@ bool StandardPath::safeSave(Type type, const std::string &pathOrig,
-     }
-     try {
-         if (callback(file.fd())) {
--
-+#ifndef _WIN32
-             // close it
-             fchmod(file.fd(), 0666 & ~(d->umask()));
-+#endif
-             return true;
-         }
-     } catch (const std::exception &) {
 diff --git a/src/lib/fcitx-utils/unixfd.cpp b/src/lib/fcitx-utils/unixfd.cpp
 index 18678a2b..4439fd9e 100644
 --- a/src/lib/fcitx-utils/unixfd.cpp
@@ -167,19 +128,6 @@ index 18678a2b..4439fd9e 100644
          if (nfd == -1) {
              throw std::runtime_error("Failed to dup file descriptor");
          }
-diff --git a/src/lib/fcitx/CMakeLists.txt b/src/lib/fcitx/CMakeLists.txt
-index 927d1676..6ce9b0f4 100644
---- a/src/lib/fcitx/CMakeLists.txt
-+++ b/src/lib/fcitx/CMakeLists.txt
-@@ -24,7 +24,7 @@ set(FCITX_CORE_SOURCES
-     inputpanel.cpp
-     candidatelist.cpp
-     candidateaction.cpp
--    icontheme.cpp
-+    # icontheme.cpp
-     inputmethodengine.cpp
-     )
- 
 diff --git a/src/lib/fcitx/instance.cpp b/src/lib/fcitx/instance.cpp
 index d23a957d..13c28365 100644
 --- a/src/lib/fcitx/instance.cpp
