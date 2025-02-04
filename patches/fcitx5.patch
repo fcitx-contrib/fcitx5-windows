@@ -1,26 +1,3 @@
-diff --git a/src/lib/fcitx-utils/eventdispatcher.cpp b/src/lib/fcitx-utils/eventdispatcher.cpp
-index cd88dc58..37f0a7bd 100644
---- a/src/lib/fcitx-utils/eventdispatcher.cpp
-+++ b/src/lib/fcitx-utils/eventdispatcher.cpp
-@@ -50,12 +50,12 @@ public:
- EventDispatcher::EventDispatcher()
-     : d_ptr(std::make_unique<EventDispatcherPrivate>()) {
-     FCITX_D();
--    int selfpipe[2];
--    if (safePipe(selfpipe)) {
--        throw std::runtime_error("Failed to create pipe");
--    }
--    d->fd_[0].give(selfpipe[0]);
--    d->fd_[1].give(selfpipe[1]);
-+    // int selfpipe[2];
-+    // if (safePipe(selfpipe)) {
-+    //     throw std::runtime_error("Failed to create pipe");
-+    // }
-+    // d->fd_[0].give(selfpipe[0]);
-+    // d->fd_[1].give(selfpipe[1]);
- }
- 
- EventDispatcher::~EventDispatcher() = default;
 diff --git a/src/lib/fcitx-utils/misc.cpp b/src/lib/fcitx-utils/misc.cpp
 index 97dedcb6..05a57046 100644
 --- a/src/lib/fcitx-utils/misc.cpp
@@ -54,31 +31,6 @@ index 97dedcb6..05a57046 100644
  ssize_t getline(UniqueCPtr<char> &lineptr, size_t *n, std::FILE *stream) {
      auto *lineRawPtr = lineptr.release();
      auto ret = getline(&lineRawPtr, n, stream);
-diff --git a/src/lib/fcitx-utils/misc_p.h b/src/lib/fcitx-utils/misc_p.h
-index 4bd30914..182691d8 100644
---- a/src/lib/fcitx-utils/misc_p.h
-+++ b/src/lib/fcitx-utils/misc_p.h
-@@ -20,6 +20,7 @@
- #include <unordered_map>
- #include <utility>
- #include <fcitx-utils/endian_p.h>
-+#include <fcitx-utils/log.h>
- #include "config.h"
- #include "environ.h"
- 
-@@ -286,7 +287,11 @@ private:
- };
- 
- static inline int safePipe(int pipefd[2]) {
--#ifdef HAVE_PIPE2
-+#ifdef _WIN32
-+    FCITX_UNUSED(pipefd);
-+    FCITX_ERROR() << "Not implemented";
-+    return 1;
-+#elif defined(HAVE_PIPE2)
-     return ::pipe2(pipefd, O_NONBLOCK | O_CLOEXEC);
- #else
-     int ret = ::pipe(pipefd);
 diff --git a/src/lib/fcitx-utils/standardpath.cpp b/src/lib/fcitx-utils/standardpath.cpp
 index 3312214c..c2e7412c 100644
 --- a/src/lib/fcitx-utils/standardpath.cpp
@@ -115,19 +67,6 @@ index 3312214c..c2e7412c 100644
          return dir;
      }
  
-diff --git a/src/lib/fcitx-utils/unixfd.cpp b/src/lib/fcitx-utils/unixfd.cpp
-index 18678a2b..4439fd9e 100644
---- a/src/lib/fcitx-utils/unixfd.cpp
-+++ b/src/lib/fcitx-utils/unixfd.cpp
-@@ -48,7 +48,7 @@ void UnixFD::set(int fd, int min) {
-     if (fd == -1) {
-         reset();
-     } else {
--        int nfd = ::fcntl(fd, F_DUPFD_CLOEXEC, min);
-+        int nfd = fd; // ::fcntl(fd, F_DUPFD_CLOEXEC, min);
-         if (nfd == -1) {
-             throw std::runtime_error("Failed to dup file descriptor");
-         }
 diff --git a/src/lib/fcitx/instance.cpp b/src/lib/fcitx/instance.cpp
 index d23a957d..13c28365 100644
 --- a/src/lib/fcitx/instance.cpp
