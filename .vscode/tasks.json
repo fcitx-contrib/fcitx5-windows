@@ -1,0 +1,55 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "type": "shell",
+            "label": "Configure",
+            "command": "cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Debug",
+            "options": {
+                "env": {
+                    "PATH": "C:/msys64/clang64/bin"
+                }
+            },
+            "group": {
+                "kind": "build"
+            }
+        },
+        {
+            "type": "shell",
+            "label": "Build",
+            "command": "cmake --build build",
+            "group": {
+                "kind": "build"
+            }
+        },
+        {
+            "type": "shell",
+            "label": "Install",
+            "command": "cmake --install build",
+            "options": {
+                "env": {
+                    "DESTDIR": "dist"
+                }
+            },
+            "group": {
+                "kind": "build"
+            }
+        },
+        {
+            "type": "shell",
+            "label": "Format",
+            "command": "./win32/scripts/format.ps1",
+            "group": {
+                "kind": "build"
+            }
+        },
+        {
+            "type": "shell",
+            "label": "Lint",
+            "command": "./win32/scripts/lint.ps1",
+            "group": {
+                "kind": "build"
+            }
+        }
+    ]
+}

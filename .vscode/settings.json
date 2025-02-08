@@ -1,0 +1,7 @@
+{
+    "clangd.path": "C:/msys64/clang64/bin/clangd.exe",
+    "clangd.arguments": [
+        "-background-index",
+        "-compile-commands-dir=build-clang"
+    ]
+}

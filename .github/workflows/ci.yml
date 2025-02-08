@@ -19,6 +19,10 @@ jobs:
         with:
           submodules: recursive
 
+      - name: Lint
+        if: ${{ matrix.env == 'clang64' }}
+        run: ./win32/scripts/lint.ps1
+
       - name: Install dependencies (msys)
         if: ${{ matrix.env == 'msys' }}
         run: |
@@ -82,9 +86,6 @@ jobs:
         run: git config --global core.autocrlf false
 
       - uses: actions/checkout@v4
-
-      - name: Lint
-        run: ./scripts/lint.ps1
 
       - name: Build
         run: |

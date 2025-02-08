@@ -1,4 +1,5 @@
 {
+    "clangd.path": "C:/Program Files/LLVM/bin/clangd.exe",
     "clangd.arguments": [
         "-background-index",
         "-compile-commands-dir=build"
