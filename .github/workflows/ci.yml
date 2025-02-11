@@ -48,10 +48,10 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        env: [clang64, clangarm64]
+        arch: [x86_64, arm64]
         include:
-          - { env: clang64, arch: AMD64, pkg_arch: x86_64, postfix: x86_64 }
-          - { env: clangarm64, arch: ARM64, pkg_arch: aarch64, postfix: arm64 }
+          - { arch: x86_64, cmake_arch: AMD64, pkg_arch: x86_64  }
+          - { arch: arm64, cmake_arch: ARM64, pkg_arch: aarch64 }
 
     steps:
       - uses: actions/checkout@v4
@@ -78,18 +78,25 @@ jobs:
 
       - name: Build
         run: |
-          cmake -B build/${{ matrix.postfix }} -G Ninja `
+          cmake -B build/${{ matrix.arch }} -G Ninja `
             -DCMAKE_BUILD_TYPE=Release `
             -DCMAKE_TOOLCHAIN_FILE='windows-cross/msys2.toolchain.cmake' `
-            -DARCH=${{ matrix.arch }}
-          cmake --build build/${{ matrix.postfix }}
+            -DARCH=${{ matrix.cmake_arch }}
+          cmake --build build/${{ matrix.arch }}
 
       - name: Package
         env:
-          DESTDIR: dist/${{ matrix.postfix }}
+          DESTDIR: dist/${{ matrix.arch }}
         run: |
           cmake --install build
-          cd dist/${{ matrix.postfix }} && tar cjf ../Fcitx5-${{ matrix.postfix }}-dev.tar.bz2 bin/lib* lib
+          cd dist/${{ matrix.arch }} && tar cjf ../Fcitx5-${{ matrix.arch }}-dev.tar.bz2 bin/lib* lib
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Fcitx5-${{ matrix.arch }}
+          path: |
+            Fcitx5-${{ matrix.arch }}*.tar.bz2
 
       - name: Setup tmate session
         if: ${{ failure() }}
@@ -122,3 +129,23 @@ jobs:
       - name: Setup tmate session
         if: ${{ failure() }}
         uses: mxschmitt/action-tmate@v3
+
+  release:
+    needs: build-fcitx5-clang
+    if: ${{ github.ref == 'refs/heads/master' && !contains(github.event.head_commit.message, '!release') }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download artifact
+        uses: actions/download-artifact@v4
+        with:
+          merge-multiple: true
+
+      - name: Create Nightly release
+        uses: 'marvinpinto/action-automatic-releases@latest'
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          automatic_release_tag: latest
+          prerelease: true
+          title: "Nightly Build"
+          files: |
+            Fcitx5-*.tar.bz2
