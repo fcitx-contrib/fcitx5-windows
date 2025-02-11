@@ -71,6 +71,10 @@ jobs:
             mingw-w64-clang-x86_64-ninja `
             mingw-w64-clang-x86_64-pkgconf `
             gettext
+          if ("${{ matrix.arch }}" -eq "arm64") {
+            C:/msys64/usr/bin/pacman -S --noconfirm `
+              mingw-w64-clang-aarch64-clang
+          }
           mkdir -p C:/msys64/usr/share/gettext
           cp -r its C:/msys64/usr/share/gettext
           Add-Content $env:GITHUB_PATH "C:/msys64/clang64/bin"
@@ -88,7 +92,7 @@ jobs:
         env:
           DESTDIR: dist/${{ matrix.arch }}
         run: |
-          cmake --install build
+          cmake --install build/${{ matrix.arch }}
           cd dist/${{ matrix.arch }} && tar cjf ../Fcitx5-${{ matrix.arch }}-dev.tar.bz2 bin/lib* lib
 
       - name: Upload artifact
