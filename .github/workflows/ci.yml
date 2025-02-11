@@ -100,7 +100,7 @@ jobs:
         with:
           name: Fcitx5-${{ matrix.arch }}
           path: |
-            Fcitx5-${{ matrix.arch }}*.tar.bz2
+            dist/Fcitx5-${{ matrix.arch }}*.tar.bz2
 
       - name: Setup tmate session
         if: ${{ failure() }}
