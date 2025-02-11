@@ -3,8 +3,8 @@
     "tasks": [
         {
             "type": "shell",
-            "label": "Configure",
-            "command": "cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Debug",
+            "label": "Configure (x86_64)",
+            "command": "cmake -B build/x86_64 -G Ninja -DCMAKE_BUILD_TYPE=Debug -DCMAKE_TOOLCHAIN_FILE='windows-cross/msys2.toolchain.cmake' -DARCH=AMD64",
             "options": {
                 "env": {
                     "PATH": "C:/msys64/clang64/bin"
@@ -16,19 +16,53 @@
         },
         {
             "type": "shell",
-            "label": "Build",
-            "command": "cmake --build build",
+            "label": "Build (x86_64)",
+            "command": "cmake --build build/x86_64",
             "group": {
                 "kind": "build"
             }
         },
         {
             "type": "shell",
-            "label": "Install",
-            "command": "cmake --install build",
+            "label": "Install (x86_64)",
+            "command": "cmake --install build/x86_64",
             "options": {
                 "env": {
-                    "DESTDIR": "dist"
+                    "DESTDIR": "dist/x86_64"
+                }
+            },
+            "group": {
+                "kind": "build"
+            }
+        },
+        {
+            "type": "shell",
+            "label": "Configure (arm64)",
+            "command": "cmake -B build/arm64 -G Ninja -DCMAKE_BUILD_TYPE=Debug -DCMAKE_TOOLCHAIN_FILE='windows-cross/msys2.toolchain.cmake' -DARCH=ARM64",
+            "options": {
+                "env": {
+                    "PATH": "C:/msys64/clang64/bin"
+                }
+            },
+            "group": {
+                "kind": "build"
+            }
+        },
+        {
+            "type": "shell",
+            "label": "Build (arm64)",
+            "command": "cmake --build build/arm64",
+            "group": {
+                "kind": "build"
+            }
+        },
+        {
+            "type": "shell",
+            "label": "Install (arm64)",
+            "command": "cmake --install build/arm64",
+            "options": {
+                "env": {
+                    "DESTDIR": "dist/arm64"
                 }
             },
             "group": {

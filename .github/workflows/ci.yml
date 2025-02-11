@@ -8,23 +8,17 @@ on:
   workflow_dispatch:
 
 jobs:
-  build-fcitx5:
+  build-fcitx5-msys:
     runs-on: windows-2025
-    strategy:
-      fail-fast: false
-      matrix:
-        env: [msys, clang64]
     steps:
       - uses: actions/checkout@v4
         with:
           submodules: recursive
 
       - name: Lint
-        if: ${{ matrix.env == 'clang64' }}
         run: ./win32/scripts/lint.ps1
 
-      - name: Install dependencies (msys)
-        if: ${{ matrix.env == 'msys' }}
+      - name: Install dependencies
         run: |
           C:/msys64/usr/bin/pacman -Syu --noconfirm
           C:/msys64/usr/bin/pacman -S --noconfirm `
@@ -39,20 +33,44 @@ jobs:
           cp -r its C:/msys64/usr/share/gettext
           Add-Content $env:GITHUB_PATH "C:/msys64/usr/bin"
 
-      - name: Install dependencies (clang)
-        if: ${{ matrix.env == 'clang64' }}
+      - name: Build
+        run: |
+          cmake -B build -G Ninja `
+            -DCMAKE_BUILD_TYPE=Release
+          cmake --build build
+
+      - name: Setup tmate session
+        if: ${{ failure() }}
+        uses: mxschmitt/action-tmate@v3
+
+  build-fcitx5-clang:
+    runs-on: windows-2025
+    strategy:
+      fail-fast: false
+      matrix:
+        env: [clang64, clangarm64]
+        include:
+          - { env: clang64, arch: AMD64, pkg_arch: x86_64, postfix: x86_64 }
+          - { env: clangarm64, arch: ARM64, pkg_arch: aarch64, postfix: arm64 }
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install dependencies
         run: |
           C:/msys64/usr/bin/pacman -Syu --noconfirm
           C:/msys64/usr/bin/pacman -S --noconfirm `
-            mingw-w64-clang-x86_64-extra-cmake-modules `
+            mingw-w64-clang-${{ matrix.pkg_arch }}-extra-cmake-modules `
+            mingw-w64-clang-${{ matrix.pkg_arch }}-dlfcn `
+            mingw-w64-clang-${{ matrix.pkg_arch }}-fmt `
+            mingw-w64-clang-${{ matrix.pkg_arch }}-libuv `
             mingw-w64-clang-x86_64-clang `
             mingw-w64-clang-x86_64-cmake `
-            mingw-w64-clang-x86_64-dlfcn `
-            mingw-w64-clang-x86_64-fmt `
-            mingw-w64-clang-x86_64-libuv `
+            mingw-w64-clang-x86_64-ninja `
             mingw-w64-clang-x86_64-pkgconf `
-            gettext `
-            ninja
+            gettext
           mkdir -p C:/msys64/usr/share/gettext
           cp -r its C:/msys64/usr/share/gettext
           Add-Content $env:GITHUB_PATH "C:/msys64/clang64/bin"
@@ -60,16 +78,18 @@ jobs:
 
       - name: Build
         run: |
-          cmake -B build -G Ninja `
-            -DCMAKE_BUILD_TYPE=Release
-          cmake --build build
+          cmake -B build/${{ matrix.postfix }} -G Ninja `
+            -DCMAKE_BUILD_TYPE=Release `
+            -DCMAKE_TOOLCHAIN_FILE='windows-cross/msys2.toolchain.cmake' `
+            -DARCH=${{ matrix.arch }}
+          cmake --build build/${{ matrix.postfix }}
 
       - name: Package
-        if: ${{ matrix.env == 'clang64' }}
         env:
-          DESTDIR: dist
+          DESTDIR: dist/${{ matrix.postfix }}
         run: |
           cmake --install build
+          cd dist/${{ matrix.postfix }} && tar cjf ../Fcitx5-${{ matrix.postfix }}-dev.tar.bz2 bin/lib* lib
 
       - name: Setup tmate session
         if: ${{ failure() }}

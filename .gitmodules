@@ -1,3 +1,6 @@
 [submodule "fcitx5"]
 	path = fcitx5
 	url = https://github.com/fcitx/fcitx5
+[submodule "windows-cross"]
+	path = windows-cross
+	url = https://github.com/fcitx-contrib/windows-cross
