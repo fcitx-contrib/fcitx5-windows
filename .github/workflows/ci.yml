@@ -93,7 +93,7 @@ jobs:
           DESTDIR: dist/${{ matrix.arch }}
         run: |
           cmake --install build/${{ matrix.arch }}
-          cd dist/${{ matrix.arch }} && tar cjf ../Fcitx5-${{ matrix.arch }}-dev.tar.bz2 bin/lib* lib
+          cd dist/${{ matrix.arch }} && tar cjf ../Fcitx5-${{ matrix.arch }}-dev.tar.bz2 bin/lib* include lib
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
