@@ -30,7 +30,7 @@ jobs:
             libuv-devel `
             msys2-runtime-devel `
             ninja
-          cp -r its C:/msys64/usr/share/gettext
+          cp -r windows-cross/its C:/msys64/usr/share/gettext
           Add-Content $env:GITHUB_PATH "C:/msys64/usr/bin"
 
       - name: Build
