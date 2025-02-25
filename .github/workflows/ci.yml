@@ -70,13 +70,11 @@ jobs:
             mingw-w64-clang-x86_64-cmake `
             mingw-w64-clang-x86_64-ninja `
             mingw-w64-clang-x86_64-pkgconf `
-            gettext
+            mingw-w64-clang-x86_64-gettext-tools
           if ("${{ matrix.arch }}" -eq "arm64") {
             C:/msys64/usr/bin/pacman -S --noconfirm `
               mingw-w64-clang-aarch64-clang
           }
-          mkdir -p C:/msys64/usr/share/gettext
-          cp -r windows-cross/its C:/msys64/usr/share/gettext
           Add-Content $env:GITHUB_PATH "C:/msys64/clang64/bin"
           git apply --directory=fcitx5 patches/fcitx5.patch
 
