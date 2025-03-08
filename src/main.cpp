@@ -21,11 +21,11 @@ void setupEnv() {
     GetModuleFileNameA(NULL, path, MAX_PATH);
     auto rootPath = ::fs::path(path).parent_path().parent_path();
     auto fcitx_addon_dirs = rootPath / "lib" / "fcitx5";
-    setenv("FCITX_ADDON_DIRS", fcitx_addon_dirs.u8string());
+    setenv("FCITX_ADDON_DIRS", fcitx_addon_dirs.string());
     auto xdg_data_dirs = rootPath / "share";
     auto fcitx_data_dirs = xdg_data_dirs / "fcitx5";
-    setenv("XDG_DATA_DIRS", xdg_data_dirs.u8string());
-    setenv("FCITX_DATA_DIRS", fcitx_data_dirs.u8string());
+    setenv("XDG_DATA_DIRS", xdg_data_dirs.string());
+    setenv("FCITX_DATA_DIRS", fcitx_data_dirs.string());
 }
 
 void start() {
