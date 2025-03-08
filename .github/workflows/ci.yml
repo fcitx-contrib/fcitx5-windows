@@ -24,7 +24,6 @@ jobs:
           C:/msys64/usr/bin/pacman -S --noconfirm `
             mingw-w64-clang-x86_64-extra-cmake-modules `
             cmake `
-            fmt `
             gcc `
             gettext-devel `
             libuv-devel `
@@ -64,7 +63,6 @@ jobs:
           C:/msys64/usr/bin/pacman -S --noconfirm `
             mingw-w64-clang-${{ matrix.pkg_arch }}-extra-cmake-modules `
             mingw-w64-clang-${{ matrix.pkg_arch }}-dlfcn `
-            mingw-w64-clang-${{ matrix.pkg_arch }}-fmt `
             mingw-w64-clang-${{ matrix.pkg_arch }}-libuv `
             mingw-w64-clang-x86_64-clang `
             mingw-w64-clang-x86_64-cmake `
