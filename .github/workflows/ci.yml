@@ -74,7 +74,6 @@ jobs:
               mingw-w64-clang-aarch64-clang
           }
           Add-Content $env:GITHUB_PATH "C:/msys64/clang64/bin"
-          git apply --directory=fcitx5 patches/fcitx5.patch
 
       - name: Build
         run: |
