@@ -29,6 +29,8 @@ if (CYGWIN)
 else()
     set(CMAKE_INSTALL_PREFIX C:)
     set(ENV{PKG_CONFIG_PATH} "${CMAKE_SYSROOT}/lib/pkgconfig")
+    # For std::osyncstream
+    add_compile_options(-fexperimental-library)
 endif()
 
 add_subdirectory(fcitx5)
