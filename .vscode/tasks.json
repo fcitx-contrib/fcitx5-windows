@@ -4,7 +4,7 @@
         {
             "type": "shell",
             "label": "Configure (x86_64)",
-            "command": "cmake -B build/x86_64 -G Ninja -DCMAKE_BUILD_TYPE=Debug -DCMAKE_TOOLCHAIN_FILE='windows-cross/msys2.toolchain.cmake' -DARCH=AMD64",
+            "command": "cmake -B build/x86_64 -G Ninja -DCMAKE_BUILD_TYPE=Debug -DARCH=AMD64",
             "options": {
                 "env": {
                     "PATH": "C:/msys64/clang64/bin"
@@ -38,7 +38,7 @@
         {
             "type": "shell",
             "label": "Configure (arm64)",
-            "command": "cmake -B build/arm64 -G Ninja -DCMAKE_BUILD_TYPE=Debug -DCMAKE_TOOLCHAIN_FILE='windows-cross/msys2.toolchain.cmake' -DARCH=ARM64",
+            "command": "cmake -B build/arm64 -G Ninja -DCMAKE_BUILD_TYPE=Debug -DARCH=ARM64",
             "options": {
                 "env": {
                     "PATH": "C:/msys64/clang64/bin"
