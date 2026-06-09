@@ -8,40 +8,6 @@ on:
   workflow_dispatch:
 
 jobs:
-  build-fcitx5-msys:
-    runs-on: windows-2025
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          submodules: recursive
-
-      - name: Lint
-        run: ./win32/scripts/lint.ps1
-
-      - name: Install dependencies
-        run: |
-          C:/msys64/usr/bin/pacman -Syu --noconfirm
-          C:/msys64/usr/bin/pacman -S --noconfirm `
-            mingw-w64-clang-x86_64-extra-cmake-modules `
-            cmake `
-            gcc `
-            gettext-devel `
-            libuv-devel `
-            msys2-runtime-devel `
-            ninja
-          cp -r windows-cross/its C:/msys64/usr/share/gettext
-          Add-Content $env:GITHUB_PATH "C:/msys64/usr/bin"
-
-      - name: Build
-        run: |
-          cmake -B build -G Ninja `
-            -DCMAKE_BUILD_TYPE=Release
-          cmake --build build
-
-      - name: Setup tmate session
-        if: ${{ failure() }}
-        uses: mxschmitt/action-tmate@v3
-
   build-fcitx5-clang:
     runs-on: windows-2025
     strategy:
