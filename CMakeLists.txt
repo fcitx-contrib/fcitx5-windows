@@ -20,34 +20,15 @@ option(USE_SYSTEMD "" OFF)
 option(ENABLE_XDGAUTOSTART "" OFF)
 option(ENABLE_EMOJI "" OFF)
 option(ENABLE_LIBUUID "" OFF)
-option(BUILD_SPELL_DICT "" ${CYGWIN})
+option(BUILD_SPELL_DICT "" OFF)
 
-if (CYGWIN)
-    set(CMAKE_INSTALL_PREFIX /usr)
-    set(ECM_DIR /clang64/share/ECM/cmake)
-    add_compile_definitions(-D_GNU_SOURCE)
-else()
-    set(CMAKE_INSTALL_PREFIX C:)
-    set(ENV{PKG_CONFIG_PATH} "${CMAKE_SYSROOT}/lib/pkgconfig")
-    # For std::osyncstream
-    add_compile_options(-fexperimental-library)
-endif()
+set(CMAKE_INSTALL_PREFIX C:)
+set(ENV{PKG_CONFIG_PATH} "${CMAKE_SYSROOT}/lib/pkgconfig")
+# For std::osyncstream
+add_compile_options(-fexperimental-library)
 
 add_subdirectory(fcitx5)
 target_compile_definitions(Fcitx5Utils PUBLIC -DFcitx5Utils_EXPORTS)
 target_compile_definitions(Fcitx5Core PUBLIC -DFcitx5Core_EXPORTS)
-
-if (CYGWIN)
-    # exe needs dll in the same directory.
-    set(FCITX5UTILS_DLL_NAME msys-Fcitx5Utils-2.dll)
-    set(FCITX5UTILS_COPY "${PROJECT_BINARY_DIR}/fcitx5/src/modules/spell/${FCITX5UTILS_DLL_NAME}")
-    add_custom_command(
-        OUTPUT "${FCITX5UTILS_COPY}"
-        DEPENDS Fcitx5Utils
-        COMMAND cp "$<TARGET_FILE:Fcitx5Utils>" "${FCITX5UTILS_COPY}"
-    )
-    add_custom_target(copy_fcitx5utils ALL DEPENDS "${FCITX5UTILS_COPY}")
-    add_dependencies(spell_en_dict copy_fcitx5utils)
-endif()
 
 add_subdirectory(src)
